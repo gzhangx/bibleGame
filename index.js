@@ -1,5 +1,5 @@
 const bibleSet = require('./bibleSet');
-const maxlen = 100;
+const maxlen = 80;
 //console.log(bibleSet.books['Luke']);
 
 const bookName = process.argv[2];

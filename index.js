@@ -9,6 +9,8 @@ for (let chapi = 3; chapi < process.argv.length; chapi++) {
 }
 const hideNumber = chapters.reduce((h,i)=>h||(i=='h'), false);
 
+const showLetters = chapters.reduce((h,i)=>h||(i.startsWith(':')?i.substring(1).split('').reduce((acc,v)=>{acc[v]=v;return acc;},{}):''), false);
+console.log(showLetters);
 if (!bookName) return console.log('please specify book');
 if (!bibleSet.books[bookName]) console.log('cant find book ' + bookName);
 
@@ -58,8 +60,16 @@ book.map(booki=> {
   for (let i = 0; i < hexr.length; i++) {
     const at = top.length - 1;
     top[at] += hexr[i];
-    const tc = translate[hexr[i]];
-    bottom[at]+= (tc || hexr[i]) + (tc?' ':'');
+    let tc = translate[hexr[i]];
+    if (!tc) tc = hexr[i];
+    else {
+      //translated
+      if (hideNumber) {
+         tc = showLetters[tc] || '_';
+      }
+      tc = ' ' + tc;
+    }
+    bottom[at]+= tc;
     if (top[at].length > maxlen) {
       top.push('');
       bottom.push('');

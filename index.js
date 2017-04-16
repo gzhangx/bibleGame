@@ -3,13 +3,18 @@ const bibleSet = require('./bibleSet');
 //console.log(bibleSet.books['Luke']);
 
 const bookName = process.argv[2];
-const chapter = process.argv[3];
+const chapters = [];
+for (let chapi = 3; chapi < process.argv.length; chapi++) {
+   chapters.push(process.argv[chapi]);
+}
 if (!bookName) return console.log('please specify book');
 if (!bibleSet.books[bookName]) console.log('cant find book ' + bookName);
 
 
 const book = bibleSet.books[bookName].reduce((acc, val)=>{
-  if (!chapter || val.verse.startsWith(chapter+':')){
+  if (chapters.reduce((res, chapter)=> {
+      return (res || (chapter.indexOf(':') >= 0? val.verse === chapter :  val.verse.startsWith(chapter+ ':')));
+    }, false)){
     acc.push(val);
   }
   return acc;
@@ -17,6 +22,8 @@ const book = bibleSet.books[bookName].reduce((acc, val)=>{
 
 
 const chars = {};
+
+const resultArray = [];
 book.map(booki=> {
   const hex = Buffer.from(booki.text).toString('hex').toUpperCase();
   let hexr = '';
@@ -39,7 +46,7 @@ book.map(booki=> {
        break;
     }
   }
-  console.log(booki.verse+' ' + booki.text + ' ' + hexr);
+  resultArray.push(booki.verse+' ' + booki.text + ' ' + hexr);
 });
 
 //console.log(chars);
@@ -54,7 +61,11 @@ hexs.sort();
 const top = hexs.reduce((acc,val)=>{ const at = acc.length - 1; acc[at]+=val+' '; if (acc[at].length > 80) acc.push(''); return acc;}, ['']);
 const bottom = hexs.reduce((acc,val)=>{ const at = acc.length - 1; acc[at]+=hexToChar[val]+'  '; if (acc[at].length > 80) acc.push(''); return acc;}, ['']);
 
+
 for (var i = 0; i < top.length; i++) {
-   console.log(top[i]);
-   console.log(bottom[i]);
+   resultArray.push(top[i]);
+   resultArray.push(bottom[i]);
 }
+
+
+console.log(resultArray.join('\r\n'));

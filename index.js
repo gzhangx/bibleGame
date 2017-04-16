@@ -26,7 +26,7 @@ const book = bibleSet.books[bookName].reduce((acc, val)=>{
 
 
 const chars = {};
-
+const charStatistics = {};
 const resultArray = [];
 book.map(booki=> {
   const hex = Buffer.from(booki.text).toString('hex').toUpperCase();
@@ -50,6 +50,7 @@ book.map(booki=> {
          const c = Buffer.from(hex2,'hex');
          chars[c] = hex2;
          translate[hex2] = c;
+         if (charStatistics[c]) charStatistics[c]++; else charStatistics[c] = 1;
        break;
     }
   }
@@ -105,3 +106,14 @@ for (var i = 0; i < top.length; i++) {
 
 
 console.log(resultArray.join('\r\n'));
+
+const charsh = {};
+for(let i in charStatistics) { 
+  if (!charsh[charStatistics[i]])charsh[charStatistics[i]] = i;
+  else {
+    if (Array.isArray(charsh[charStatistics[i]]))
+      charsh[charStatistics[i]].push(i);
+    else charsh[charStatistics[i]] = [charsh[charStatistics[i]],i];
+  }
+}
+console.log(charsh);

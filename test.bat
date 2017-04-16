@@ -1,1 +1,1 @@
-node index.js Luke 24:1 24:2 24:3 h :aeiou
+node index.js Luke 24:34 24:20  24:25  24:23 24:26  h :aeiou

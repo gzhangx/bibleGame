@@ -10,7 +10,7 @@ for (let chapi = 3; chapi < process.argv.length; chapi++) {
 const hideNumber = chapters.reduce((h,i)=>h||(i=='h'), false);
 
 const showLetters = chapters.reduce((h,i)=>h||(i.startsWith(':')?i.substring(1).split('').reduce((acc,v)=>{acc[v]=v;return acc;},{}):''), false);
-console.log(showLetters);
+
 if (!bookName) return console.log('please specify book');
 if (!bibleSet.books[bookName]) console.log('cant find book ' + bookName);
 
@@ -107,6 +107,7 @@ for (var i = 0; i < top.length; i++) {
 
 console.log(resultArray.join('\r\n'));
 
+function showCharStatistics() {
 const charsh = {};
 for(let i in charStatistics) { 
   if (!charsh[charStatistics[i]])charsh[charStatistics[i]] = i;
@@ -116,4 +117,6 @@ for(let i in charStatistics) {
     else charsh[charStatistics[i]] = [charsh[charStatistics[i]],i];
   }
 }
-console.log(charsh);
+  console.log(charsh);
+}
+//showCharStatistics();

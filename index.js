@@ -7,6 +7,8 @@ const chapters = [];
 for (let chapi = 3; chapi < process.argv.length; chapi++) {
    chapters.push(process.argv[chapi]);
 }
+const hideNumber = chapters.reduce((h,i)=>h||(i=='h'), false);
+
 if (!bookName) return console.log('please specify book');
 if (!bibleSet.books[bookName]) console.log('cant find book ' + bookName);
 
@@ -46,7 +48,9 @@ book.map(booki=> {
        break;
     }
   }
-  resultArray.push(booki.verse+' ' + booki.text + ' ' + hexr);
+  if (!hideNumber) resultArray.push(booki.verse);
+  resultArray.push(booki.text);
+  resultArray.push(hexr);
 });
 
 //console.log(chars);

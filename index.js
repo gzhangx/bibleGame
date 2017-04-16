@@ -1,5 +1,5 @@
 const bibleSet = require('./bibleSet');
-
+const maxlen = 100;
 //console.log(bibleSet.books['Luke']);
 
 const bookName = process.argv[2];
@@ -28,29 +28,51 @@ const chars = {};
 const resultArray = [];
 book.map(booki=> {
   const hex = Buffer.from(booki.text).toString('hex').toUpperCase();
-  let hexr = '';
+  const hexr = [];
+  const translate = {};
   for (let i = 0; i < hex.length; i+=2) {
     const hex2 = hex.substring(i,i+2);
     switch (hex2)
     {
-       case '20': hexr+=' ';break;
-       case '21': hexr+='!';break;
-       case '27': hexr+='\'';break;
-       case '28': hexr+='(';break;
-       case '29': hexr+=')';break;
-       case '2C': hexr+=',';break;
-       case '2E': hexr+='.';break;
-       case '3A': hexr+=':';break;
-       case '3B': hexr+=';';break;
+       case '20': hexr.push(' ');break;
+       case '21': hexr.push('!');break;
+       case '27': hexr.push('\'');break;
+       case '28': hexr.push('(');break;
+       case '29': hexr.push(')');break;
+       case '2C': hexr.push(',');break;
+       case '2E': hexr.push('.');break;
+       case '3A': hexr.push(':');break;
+       case '3B': hexr.push(';');break;
        default: 
-         hexr+= hex2;
-         chars[Buffer.from(hex2,'hex')] = hex2;
+         hexr.push(hex2);
+         const c = Buffer.from(hex2,'hex');
+         chars[c] = hex2;
+         translate[hex2] = c;
        break;
     }
   }
   if (!hideNumber) resultArray.push(booki.verse);
-  resultArray.push(booki.text);
-  resultArray.push(hexr);
+  const top = [''];
+  const bottom = [''];
+  
+  for (let i = 0; i < hexr.length; i++) {
+    const at = top.length - 1;
+    top[at] += hexr[i];
+    const tc = translate[hexr[i]];
+    bottom[at]+= (tc || hexr[i]) + (tc?' ':'');
+    if (top[at].length > maxlen) {
+      top.push('');
+      bottom.push('');
+    }
+  }
+
+   for (var i = 0; i < top.length; i++) {
+     resultArray.push(top[i]);
+     resultArray.push(bottom[i]);
+  }
+  //resultArray.push(booki.text);
+  //resultArray.push(hexr);
+  resultArray.push('');
 });
 
 //console.log(chars);
@@ -62,10 +84,10 @@ for(let i in chars) {
 }
 
 hexs.sort();
-const top = hexs.reduce((acc,val)=>{ const at = acc.length - 1; acc[at]+=val+' '; if (acc[at].length > 80) acc.push(''); return acc;}, ['']);
-const bottom = hexs.reduce((acc,val)=>{ const at = acc.length - 1; acc[at]+=hexToChar[val]+'  '; if (acc[at].length > 80) acc.push(''); return acc;}, ['']);
+const top = hexs.reduce((acc,val)=>{ const at = acc.length - 1; acc[at]+=val+' '; if (acc[at].length > maxlen) acc.push(''); return acc;}, ['']);
+const bottom = hexs.reduce((acc,val)=>{ const at = acc.length - 1; acc[at]+=hexToChar[val]+'  '; if (acc[at].length > maxlen) acc.push(''); return acc;}, ['']);
 
-
+resultArray.push('');
 for (var i = 0; i < top.length; i++) {
    resultArray.push(top[i]);
    resultArray.push(bottom[i]);

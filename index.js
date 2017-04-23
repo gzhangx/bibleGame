@@ -50,7 +50,8 @@ book.map(booki=> {
          const c = Buffer.from(hex2,'hex');
          chars[c] = hex2;
          translate[hex2] = c;
-         if (charStatistics[c]) charStatistics[c]++; else charStatistics[c] = 1;
+         if (!showLetters[c])
+           if (charStatistics[c]) charStatistics[c]++; else charStatistics[c] = 1;
        break;
     }
   }
@@ -90,8 +91,10 @@ book.map(booki=> {
 const hexs=[];
 const hexToChar = {};
 for(let i in chars) {
-  hexs.push(chars[i]);
-  hexToChar[chars[i]] = i;
+  if (!showLetters[Buffer.from(chars[i],'hex').toString()]) {
+    hexs.push(chars[i]);
+    hexToChar[chars[i]] = i;
+  }
 }
 
 hexs.sort();
@@ -119,4 +122,4 @@ for(let i in charStatistics) {
 }
   console.log(charsh);
 }
-//showCharStatistics();
+showCharStatistics();

@@ -16,6 +16,8 @@ function addTranslates(acc, str) {
 }
 addTranslates(translates,' !\(),.:\';');
 
+const notLetter = ' !\(),.:\';'.split('').reduce((acc,c)=>{acc[c] = true; return acc;}, {});
+
 if (!bookName) return console.log('please specify book');
 if (!bibleSet.books[bookName]) console.log('cant find book ' + bookName);
 
@@ -40,6 +42,16 @@ book.map(booki=> {
   });
 });
 
+function posToNextWord(curWritePos, curLinePos, line, lineStart) {
+  let i = curLinePos;
+  for (; i < line.length; i++) {
+    if (!notLetter[line[i]]) break;
+  }
+  for (; i < line.length; i++) {
+    if (notLetter[line[i]]) { i--; break;}
+  }
+  return i - lineStart;
+}
 
 book.map(booki=> {
   const hexr = [];
@@ -57,6 +69,7 @@ book.map(booki=> {
   const bottom = [''];
 
   let prevbig = false;  
+  let lineStart = 0;
   for (let i = 0; i < hexr.length; i++) {
     const at = top.length - 1;
     const hex = hexr[i];
@@ -67,9 +80,14 @@ book.map(booki=> {
     const tc = curtop.length === 2? '_':line[i];
 
     bottom[at]+= tc;
-    if (top[at].length > maxlen) {
+    if(i>0 && notLetter[line[i]] && posToNextWord(top[at].length, i, line, lineStart) > maxlen) {    
+        top.push('');
+        bottom.push('');
+        lineStart = i;
+    }else if (top[at].length > maxlen) {
       top.push('');
       bottom.push('');
+      lineStart = i;
     }
   }
 

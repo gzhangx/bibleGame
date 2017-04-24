@@ -55,13 +55,16 @@ book.map(booki=> {
   if (!hideNumber) resultArray.push(booki.verse);
   const top = [''];
   const bottom = [''];
-  
+
+  let prevbig = false;  
   for (let i = 0; i < hexr.length; i++) {
     const at = top.length - 1;
     const hex = hexr[i];
-    top[at] += hex.length == 1? ' ': hex;
+    const curtop = prevbig?' ': hex;
+    prevbig = curtop.length === 2;
+    top[at] += curtop.length == 1? ' ': hex;
 
-    const tc = hex.length === 2? ' _':line[i];
+    const tc = curtop.length === 2? '_ ':line[i];
 
     bottom[at]+= tc;
     if (top[at].length > maxlen) {

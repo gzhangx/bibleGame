@@ -9,7 +9,12 @@ for (let chapi = 3; chapi < process.argv.length; chapi++) {
 }
 const hideNumber = chapters.reduce((h,i)=>h||(i=='h'), false);
 
-const showLetters = chapters.reduce((h,i)=>h||(i.startsWith(':')?i.substring(1).split('').reduce((acc,v)=>{acc[v]=v;return acc;},{}):''), false);
+const translates = chapters.reduce((h,i)=>h||(i.startsWith(':')?i.substring(1).split('').reduce((acc,v)=>{acc[v]={tran:v, count:1, show:true};return acc;},{}):''), false);
+
+function addTranslates(acc, str) {
+  str.split('').forEach(v=>{acc[v]={tran:v, count:0, show:true};});
+}
+addTranslates(translates,' !\(),.:\';');
 
 if (!bookName) return console.log('please specify book');
 if (!bibleSet.books[bookName]) console.log('cant find book ' + bookName);
@@ -26,34 +31,26 @@ const book = bibleSet.books[bookName].reduce((acc, val)=>{
 
 
 const chars = {};
-const charStatistics = {};
+
 const resultArray = [];
 book.map(booki=> {
-  const hex = Buffer.from(booki.text).toString('hex').toUpperCase();
+  booki.text.split('').forEach(c=>{
+    if (!translates[c])translates[c] = {tran:Buffer.from(c).toString('hex'), count:1, show:false};
+    else translates[c].count++;
+  });
+});
+
+
+book.map(booki=> {
   const hexr = [];
-  const translate = {};
-  for (let i = 0; i < hex.length; i+=2) {
-    const hex2 = hex.substring(i,i+2);
-    switch (hex2)
-    {
-       case '20': hexr.push(' ');break;
-       case '21': hexr.push('!');break;
-       case '27': hexr.push('\'');break;
-       case '28': hexr.push('(');break;
-       case '29': hexr.push(')');break;
-       case '2C': hexr.push(',');break;
-       case '2E': hexr.push('.');break;
-       case '3A': hexr.push(':');break;
-       case '3B': hexr.push(';');break;
-       default: 
-         hexr.push(hex2);
-         const c = Buffer.from(hex2,'hex');
-         chars[c] = hex2;
-         translate[hex2] = c;
-         if (!showLetters[c])
-           if (charStatistics[c]) charStatistics[c]++; else charStatistics[c] = 1;
-       break;
-    }
+  const line = [];
+  for (let i = 0; i < booki.text.length; i++) {
+    const c = booki.text.substring(i,i+1);
+    const info = translates[c];
+    const hex = info.tran;    
+         hexr.push(hex); 
+    if (!translates[c].show) chars[c] = hex;
+         line.push(c);    
   }
   if (!hideNumber) resultArray.push(booki.verse);
   const top = [''];
@@ -61,16 +58,11 @@ book.map(booki=> {
   
   for (let i = 0; i < hexr.length; i++) {
     const at = top.length - 1;
-    top[at] += hexr[i];
-    let tc = translate[hexr[i]];
-    if (!tc) tc = hexr[i];
-    else {
-      //translated
-      if (hideNumber) {
-         tc = showLetters[tc] || '_';
-      }
-      tc = ' ' + tc;
-    }
+    const hex = hexr[i];
+    top[at] += hex.length == 1? ' ': hex;
+
+    const tc = hex.length === 2? ' _':line[i];
+
     bottom[at]+= tc;
     if (top[at].length > maxlen) {
       top.push('');
@@ -91,10 +83,8 @@ book.map(booki=> {
 const hexs=[];
 const hexToChar = {};
 for(let i in chars) {
-  if (!showLetters[Buffer.from(chars[i],'hex').toString()]) {
     hexs.push(chars[i]);
     hexToChar[chars[i]] = i;
-  }
 }
 
 hexs.sort();
@@ -112,12 +102,14 @@ console.log(resultArray.join('\r\n'));
 
 function showCharStatistics() {
 const charsh = {};
-for(let i in charStatistics) { 
-  if (!charsh[charStatistics[i]])charsh[charStatistics[i]] = i;
+for(let c in translates) {
+   const info = translates[c];
+   if (info.show) continue;
+  if (!charsh[info.count])charsh[info.count] = c;
   else {
-    if (Array.isArray(charsh[charStatistics[i]]))
-      charsh[charStatistics[i]].push(i);
-    else charsh[charStatistics[i]] = [charsh[charStatistics[i]],i];
+    if (Array.isArray(charsh[info.count]))
+      charsh[info.count].push(c);
+    else charsh[info.count] = [charsh[info.count],c];
   }
 }
   console.log(charsh);

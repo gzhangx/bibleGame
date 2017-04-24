@@ -60,11 +60,11 @@ book.map(booki=> {
   for (let i = 0; i < hexr.length; i++) {
     const at = top.length - 1;
     const hex = hexr[i];
-    const curtop = prevbig?' ': hex;
+    const curtop = prevbig?'': (hex.length == 1?' ':hex);
     prevbig = curtop.length === 2;
-    top[at] += curtop.length == 1? ' ': hex;
+    top[at] += curtop;
 
-    const tc = curtop.length === 2? '_ ':line[i];
+    const tc = curtop.length === 2? '_':line[i];
 
     bottom[at]+= tc;
     if (top[at].length > maxlen) {

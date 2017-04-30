@@ -2,6 +2,7 @@ const bibleSet = require('./bibleSet');
 const maxlen = 80;
 //console.log(bibleSet.books['Luke']);
 
+let redirectionLevel = 2;
 const bookName = process.argv[2];
 const chapters = [];
 for (let chapi = 3; chapi < process.argv.length; chapi++) {
@@ -14,7 +15,7 @@ const translates = chapters.reduce((h,i)=>h||(i.startsWith(':')?i.substring(1).s
 function addTranslates(acc, str) {
   str.split('').forEach(v=>{acc[v]={tran:v, count:0, show:true};});
 }
-addTranslates(translates,' !\(),.:\';');
+addTranslates(translates,' !\(),.:\';?1234567890');
 
 const notLetter = ' !\(),.:\';'.split('').reduce((acc,c)=>{acc[c] = true; return acc;}, {});
 
@@ -30,9 +31,6 @@ const book = bibleSet.books[bookName].reduce((acc, val)=>{
   }
   return acc;
 }, []);
-
-
-const chars = {};
 
 const resultArray = [];
 book.map(booki=> {
@@ -53,6 +51,12 @@ function posToNextWord(curWritePos, curLinePos, line, lineStart) {
   return i - lineStart;
 }
 
+const redirections = [];
+for (let i = 0; i < redirectionLevel; i++) {
+  
+}
+
+const chars = {};
 book.map(booki=> {
   const hexr = [];
   const line = [];
@@ -77,7 +81,7 @@ book.map(booki=> {
     prevbig = curtop.length === 2;
     top[at] += curtop;
 
-    const tc = curtop.length === 2? '_':line[i];
+    const tc = hex!=line[i]? '_':line[i];
 
     bottom[at]+= tc;
     if(i>0 && notLetter[line[i]] && posToNextWord(top[at].length, i, line, lineStart) > maxlen) {    

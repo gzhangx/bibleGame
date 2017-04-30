@@ -10,7 +10,9 @@ for (let chapi = 3; chapi < process.argv.length; chapi++) {
 }
 const hideNumber = chapters.reduce((h,i)=>h||(i=='h'), false);
 
-const translates = chapters.reduce((h,i)=>h||(i.startsWith(':')?i.substring(1).split('').reduce((acc,v)=>{acc[v]={tran:v, count:1, show:true};return acc;},{}):''), false);
+const translates = {};
+
+for(let i = 0; i < chapters.length; i++) if (chapters[i].startsWith(':')) addTranslates(translates, chapters[i]);
 
 function addTranslates(acc, str) {
   str.split('').forEach(v=>{acc[v]={tran:v, count:0, show:true};});
@@ -35,7 +37,7 @@ const book = bibleSet.books[bookName].reduce((acc, val)=>{
 const resultArray = [];
 book.map(booki=> {
   booki.text.split('').forEach(c=>{
-    if (!translates[c])translates[c] = {tran:Buffer.from(c).toString('hex'), count:1, show:false};
+    if (!translates[c])translates[c] = {tran:c, count:1, show:false, from: c};
     else translates[c].count++;
   });
 });
@@ -51,9 +53,39 @@ function posToNextWord(curWritePos, curLinePos, line, lineStart) {
   return i - lineStart;
 }
 
+function shuffle(array) {
+  var m = array.length, t, i;
+
+  // While there remain elements to shuffle…
+  while (m) {
+
+    // Pick a remaining element…
+    i = Math.floor(Math.random() * m--);
+
+    // And swap it with the current element.
+    t = array[m];
+    array[m] = array[i];
+    array[i] = t;
+  }
+
+  return array;
+}
+
+const allChars = '01234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
 const redirections = [];
 for (let i = 0; i < redirectionLevel; i++) {
-  
+  redirections.push([]);
+  const curHide = shuffle(allChars.split(''));
+  let cur = 0;
+  for (let c in translates) {
+    tran = translates[c];
+    if(!tran.show) {
+      const newTran = curHide[cur++];
+      redirections[i].push({from: tran.tran, to:newTran});
+      tran.from = tran.tran;
+      tran.tran = newTran;
+    }
+  }
 }
 
 const chars = {};
@@ -76,12 +108,14 @@ book.map(booki=> {
   let lineStart = 0;
   for (let i = 0; i < hexr.length; i++) {
     const at = top.length - 1;
+    const linei = line[i];
     const hex = hexr[i];
-    const curtop = prevbig?'': (hex.length == 1?' ':hex);
+    const isHide = hex!=linei;
+    const curtop = prevbig?'': (!isHide?' ':hex);
     prevbig = curtop.length === 2;
     top[at] += curtop;
 
-    const tc = hex!=line[i]? '_':line[i];
+    const tc = isHide? '_':line[i];
 
     bottom[at]+= tc;
     if(i>0 && notLetter[line[i]] && posToNextWord(top[at].length, i, line, lineStart) > maxlen) {    
@@ -105,6 +139,8 @@ book.map(booki=> {
 });
 
 //console.log(chars);
+
+function debugShowFinalTranslation() {
 const hexs=[];
 const hexToChar = {};
 for(let i in chars) {
@@ -114,7 +150,7 @@ for(let i in chars) {
 
 hexs.sort();
 const top = hexs.reduce((acc,val)=>{ const at = acc.length - 1; acc[at]+=val+' '; if (acc[at].length > maxlen) acc.push(''); return acc;}, ['']);
-const bottom = hexs.reduce((acc,val)=>{ const at = acc.length - 1; acc[at]+=hexToChar[val]+'  '; if (acc[at].length > maxlen) acc.push(''); return acc;}, ['']);
+const bottom = hexs.reduce((acc,val)=>{ const at = acc.length - 1; acc[at]+=hexToChar[val]+' '; if (acc[at].length > maxlen) acc.push(''); return acc;}, ['']);
 
 resultArray.push('');
 for (var i = 0; i < top.length; i++) {
@@ -122,6 +158,25 @@ for (var i = 0; i < top.length; i++) {
    resultArray.push(bottom[i]);
 }
 
+}
+
+
+function printOneLine(fromTo) {
+   const breakLine = op=>fromTo.reduce((acc,val)=>{ const at = acc.length - 1; acc[at]+=val[op]+' '; if (acc[at].length > maxlen) acc.push(''); return acc;}, ['']);
+   const top = breakLine('to');
+   const bottom = breakLine('from');
+
+   resultArray.push('');
+   for (var i = 0; i < top.length; i++) {
+      resultArray.push(top[i]);
+      resultArray.push(bottom[i]);
+   }
+}
+
+for (let i = redirections.length - 1; i >= 0; i--) {
+  printOneLine(shuffle(redirections[i]));
+  resultArray.push('');  
+}
 
 console.log(resultArray.join('\r\n'));
 
